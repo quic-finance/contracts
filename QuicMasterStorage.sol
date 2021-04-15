@@ -40,7 +40,7 @@ contract QuicMasterStorage {
         IERC20 lpToken;           // Address of LP token contract.
         uint256 allocPoint;       // How many allocation points assigned to this pool. Quic to distribute per block.
         uint256 lastRewardBlock;  // Last block number that Quic distribution occurs.
-        uint256 accQuicPerShare; // Accumulated Quic per share, times 1e12. See below.
+        uint256 accQuicPerShare;  // Accumulated Quic per share, times 1e12. See below.
     }
     // The Quic TOKEN!
     QuicToken public Quic;

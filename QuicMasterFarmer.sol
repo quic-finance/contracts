@@ -12,8 +12,10 @@ contract QuicMasterFarmer is QuicMasterStorage, Ownable, Authorizable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
+    // Set at contract creation and is not able to updated or changed
     address public transactionsContract;
 
+    // Gas fees for calling delegate cals functions to the transactions contract
     uint256 GAS_FOR_UPDATE_POOL = 30000000;
     uint256 GAS_FOR_CLAIM_REWARD = 30000000;
     uint256 GAS_FOR_HARVEST = 30000000;
@@ -196,7 +198,7 @@ contract QuicMasterFarmer is QuicMasterStorage, Ownable, Authorizable {
         require(delegateCallStatus, "delegatecall failed");
     }
 
-    // lock 95% of reward if it come from bounus time
+    // lock 85% of reward if it come from bounus time
     function _harvest(uint256 _pid) internal {
         (bool delegateCallStatus, bytes memory result) = transactionsContract.delegatecall{gas:GAS_FOR_HARVEST}(
             abi.encodeWithSignature("harvest(uint256)", _pid)
