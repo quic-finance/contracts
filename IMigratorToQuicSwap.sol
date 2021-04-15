@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
 
-import "https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-contracts/release-v3.4/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 interface IMigratorToQuicSwap {
     // Perform LP token migration from legacy UniswapV2 to QuicSwap.
     // Take the current LP token address and return the new LP token address.

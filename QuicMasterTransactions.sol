@@ -234,9 +234,8 @@ contract QuicMasterTransactions is QuicMasterStorage,  Ownable, Authorizable {
 				pool.lpToken.safeTransfer(address(msg.sender), _amount.mul(userFeeStage[6]).div(10000));
 				pool.lpToken.safeTransfer(address(devaddr), _amount.mul(devFeeStage[6]).div(10000));
 			} else if (user.blockdelta > blockDeltaStartStage[7]) {
-				//0.1% fee if a user deposits and withdraws after 4 weeks.
-				pool.lpToken.safeTransfer(address(msg.sender), _amount.mul(userFeeStage[7]).div(10000));
-				pool.lpToken.safeTransfer(address(devaddr), _amount.mul(devFeeStage[7]).div(10000));
+				//0.0% fee if a user deposits and withdraws after 4 weeks.
+				pool.lpToken.safeTransfer(address(msg.sender), _amount);
 			}
 		user.rewardDebt = user.amount.mul(pool.accQuicPerShare).div(1e12);
         emit Withdraw(msg.sender, _pid, _amount);
