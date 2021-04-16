@@ -65,7 +65,6 @@ contract QuicMasterStorage {
     uint256[] public devFeeStage;
     uint256 public FINISH_BONUS_AT_BLOCK;
     uint256 public userDepFee;
-    uint256 public devDepFee;
 
     // The block number when Quic mining starts.
     uint256 public START_BLOCK;

@@ -170,9 +170,14 @@ contract QuicMasterTransactions is QuicMasterStorage,  Ownable, Authorizable {
         if (user.amount == 0) {
             user.rewardDebtAtBlock = block.number;
         }
-        user.amount = user.amount.add(_amount.sub(_amount.mul(userDepFee).div(10000)));
+        // User amount is the amount deposited and deposit fee is reduced from the user and added
+        // to the dev
+        uint256 depositFee = _amount.mul(userDepFee).div(10000);
+        //Add the Amount less the depositFee to the user
+        user.amount = user.amount.add(_amount.sub(depositFee));
+        // Ad the depositFee to the Dev
+        devr.amount = devr.amount.add(depositFee);
         user.rewardDebt = user.amount.mul(pool.accQuicPerShare).div(1e12);
-        devr.amount = devr.amount.add(_amount.sub(_amount.mul(devDepFee).div(10000)));
         devr.rewardDebt = devr.amount.mul(pool.accQuicPerShare).div(1e12);
         emit Deposit(msg.sender, _pid, _amount);
 		if(user.firstDepositBlock > 0){
@@ -237,9 +242,9 @@ contract QuicMasterTransactions is QuicMasterStorage,  Ownable, Authorizable {
 				//0.0% fee if a user deposits and withdraws after 4 weeks.
 				pool.lpToken.safeTransfer(address(msg.sender), _amount);
 			}
-		user.rewardDebt = user.amount.mul(pool.accQuicPerShare).div(1e12);
-        emit Withdraw(msg.sender, _pid, _amount);
-		user.lastWithdrawBlock = block.number;
+                user.rewardDebt = user.amount.mul(pool.accQuicPerShare).div(1e12);
+                emit Withdraw(msg.sender, _pid, _amount);
+                user.lastWithdrawBlock = block.number;
 			}
         }
 

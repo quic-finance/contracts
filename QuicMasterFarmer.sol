@@ -34,7 +34,6 @@ contract QuicMasterFarmer is QuicMasterStorage, Ownable, Authorizable {
         uint256 _startBlock,
         uint256 _halvingAfterBlock,
         uint256 _userDepFee,
-        uint256 _devDepFee,
         uint256[] memory _blockDeltaStartStage,
         uint256[] memory _blockDeltaEndStage,
         uint256[] memory _userFeeStage,
@@ -50,7 +49,6 @@ contract QuicMasterFarmer is QuicMasterStorage, Ownable, Authorizable {
         START_BLOCK = _startBlock;
         HALVING_AFTER = _halvingAfterBlock;
 	    userDepFee = _userDepFee;
-	    devDepFee = _devDepFee;
 	    blockDeltaStartStage = _blockDeltaStartStage;
 	    blockDeltaEndStage = _blockDeltaEndStage;
 	    userFeeStage = _userFeeStage;
@@ -380,10 +378,6 @@ contract QuicMasterFarmer is QuicMasterStorage, Ownable, Authorizable {
     
     function setDevFeeStage(uint[] memory _devFees) public onlyAuthorized() {
         devFeeStage = _devFees;
-    }
-    
-    function setDevDepFee(uint _devDepFees) public onlyAuthorized() {
-        devDepFee = _devDepFees;
     }
     
     function setUserDepFee(uint _usrDepFees) public onlyAuthorized() {
