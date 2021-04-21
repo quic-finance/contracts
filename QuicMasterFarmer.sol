@@ -65,9 +65,10 @@ contract QuicMasterFarmer is QuicMasterStorage, Ownable, Authorizable {
             uint256 halvingAtBlock = HALVING_AFTER.add(i + 1).add(START_BLOCK);
             HALVING_AT_BLOCK.push(halvingAtBlock);
         }
-        FINISH_BONUS_AT_BLOCK = 26180756;
+        FINISH_BONUS_AT_BLOCK = 18333511;
         HALVING_AT_BLOCK.push(uint256(-1));
     }
+
 
     // Add a new lp to the pool. Can only be called by the owner.
     function add(uint256 _allocPoint, IERC20 _lpToken, bool _withUpdate) public onlyOwner {
