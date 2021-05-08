@@ -1,28 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
 
-import "./QuicMasterStorage.sol";
+import "./QuicMasterTransactions.sol";
 // QuicMasterFarmer is the master of Quic. He can make Quic and he is a fair guy.
 //
 // Note that it's ownable and the owner wields tremendous power. The ownership
 // will be transferred to a governance smart contract once Quic is sufficiently
 // distributed and the community can show to govern itself.
 //
-contract QuicMasterFarmer is QuicMasterStorage, Ownable, Authorizable {
+contract QuicMasterFarmer is QuicMasterTransactions {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     // Set at contract creation and is not able to updated or changed
     address public transactionsContract;
-
-    // Gas fees for calling delegate cals functions to the transactions contract
-    uint256 GAS_FOR_UPDATE_POOL = 30000000;
-    uint256 GAS_FOR_CLAIM_REWARD = 30000000;
-    uint256 GAS_FOR_HARVEST = 30000000;
-    uint256 GAS_FOR_DEPOSIT = 30000000;
-    uint256 GAS_FOR_WITHDRAW = 30000000;
-    uint256 GAS_FOR_EMERGENCY_WITHDRAW = 30000000;
-    uint256 GAS_FOR_TRANSFER = 30000000;
 
     constructor(
         QuicToken _Quic,
@@ -37,8 +28,7 @@ contract QuicMasterFarmer is QuicMasterStorage, Ownable, Authorizable {
         uint256[] memory _blockDeltaStartStage,
         uint256[] memory _blockDeltaEndStage,
         uint256[] memory _userFeeStage,
-        uint256[] memory _devFeeStage,
-        address _transactionsContract
+        uint256[] memory _devFeeStage
     ) public {
         Quic = _Quic;
         devaddr = _devaddr;
@@ -53,7 +43,6 @@ contract QuicMasterFarmer is QuicMasterStorage, Ownable, Authorizable {
 	    blockDeltaEndStage = _blockDeltaEndStage;
 	    userFeeStage = _userFeeStage;
 	    devFeeStage = _devFeeStage;
-        transactionsContract = _transactionsContract;
     }
 
     function poolLength() external view returns (uint256) {
@@ -121,60 +110,6 @@ contract QuicMasterFarmer is QuicMasterStorage, Ownable, Authorizable {
         }
     }
 
-   // Update reward variables of the given pool to be up-to-date.
-    function updatePool(uint256 _pid) public {
-        (bool delegateCallStatus, bytes memory result) = transactionsContract.delegatecall{gas:GAS_FOR_UPDATE_POOL}(
-            abi.encodeWithSignature("updatePool(uint256)", _pid)
-        );
-        require(delegateCallStatus, "delegatecall failed");
-    }
-
-    // |--------------------------------------|
-    // [20, 30, 40, 50, 60, 70, 80, 99999999]
-    // Return reward multiplier over the given _from to _to block.
-    function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
-        uint256 result = 0;
-        if (_from < START_BLOCK) return 0;
-
-        for (uint256 i = 0; i < HALVING_AT_BLOCK.length; i++) {
-            uint256 endBlock = HALVING_AT_BLOCK[i];
-
-            if (_to <= endBlock) {
-                uint256 m = _to.sub(_from).mul(REWARD_MULTIPLIER[i]);
-                return result.add(m);
-            }
-
-            if (_from < endBlock) {
-                uint256 m = endBlock.sub(_from).mul(REWARD_MULTIPLIER[i]);
-                _from = endBlock;
-                result = result.add(m);
-            }
-        }
-
-        return result;
-    }
-
-    function getPoolReward(uint256 _from, uint256 _to, uint256 _allocPoint) public view returns (uint256 forDev, uint256 forFarmer, uint256 forLP, uint256 forCom, uint256 forFounders) {
-        uint256 multiplier = getMultiplier(_from, _to);
-        uint256 amount = multiplier.mul(REWARD_PER_BLOCK).mul(_allocPoint).div(totalAllocPoint);
-        uint256 QuicCanMint = Quic.cap().sub(Quic.totalSupply());
-
-        if (QuicCanMint < amount) {
-            forDev = 0;
-			forFarmer = QuicCanMint;
-			forLP = 0;
-			forCom = 0;
-			forFounders = 0;
-        }
-        else {
-            forDev = amount.mul(PERCENT_FOR_DEV).div(100);
-			forFarmer = amount;
-			forLP = amount.mul(PERCENT_FOR_LP).div(100);
-			forCom = amount.mul(PERCENT_FOR_COM).div(100);
-			forFounders = amount.mul(PERCENT_FOR_FOUNDERS).div(100);
-        }
-    }
-
     // View function to see pending Quic on frontend.
     function pendingReward(uint256 _pid, address _user) external view returns (uint256) {
         PoolInfo storage pool = poolInfo[_pid];
@@ -188,54 +123,6 @@ contract QuicMasterFarmer is QuicMasterStorage, Ownable, Authorizable {
 
         }
         return user.amount.mul(accQuicPerShare).div(1e12).sub(user.rewardDebt);
-    }
-
-    function claimReward(uint256 _pid) public {
-        (bool delegateCallStatus, bytes memory result) = transactionsContract.delegatecall{gas:GAS_FOR_CLAIM_REWARD}(
-            abi.encodeWithSignature("claimReward(uint256)", _pid)
-        );
-        require(delegateCallStatus, "delegatecall failed");
-    }
-
-    // lock 85% of reward if it come from bounus time
-    function _harvest(uint256 _pid) internal {
-        (bool delegateCallStatus, bytes memory result) = transactionsContract.delegatecall{gas:GAS_FOR_HARVEST}(
-            abi.encodeWithSignature("harvest(uint256)", _pid)
-        );
-        require(delegateCallStatus, "delegatecall failed");
-    }
-
-    // Deposit LP tokens to QuicMasterFarmer for $QUIC allocation.
-    function deposit(uint256 _pid, uint256 _amount, address _ref) public {
-        (bool delegateCallStatus, bytes memory result) = transactionsContract.delegatecall{gas:GAS_FOR_DEPOSIT}(
-            abi.encodeWithSignature("deposit(uint256,uint256,address)", _pid, _amount, _ref)
-        );
-        require(delegateCallStatus, "delegatecall failed");
-    }
-    
-  // Withdraw LP tokens from QuicMasterFarmer.
-    function withdraw(uint256 _pid, uint256 _amount, address _ref) public {
-        (bool delegateCallStatus, bytes memory result) = transactionsContract.delegatecall{gas:GAS_FOR_WITHDRAW}(
-            abi.encodeWithSignature("withdraw(uint256,uint256,address)", _pid, _amount, _ref)
-        );
-        require(delegateCallStatus, "delegatecall failed");
-    }
-
-
-    // Withdraw without caring about rewards. EMERGENCY ONLY. This has the same 25% fee as same block withdrawals to prevent abuse of thisfunction.
-    function emergencyWithdraw(uint256 _pid) public {
-        (bool delegateCallStatus, bytes memory result) = transactionsContract.delegatecall{gas:GAS_FOR_EMERGENCY_WITHDRAW}(
-            abi.encodeWithSignature("emergencyWithdraw(uint256)", _pid)
-        );
-        require(delegateCallStatus, "delegatecall failed");
-    }
-
-    // Safe Quic transfer function, just in case if rounding error causes pool to not have enough Quic.
-    function safeQuicTransfer(address _to, uint256 _amount) internal {
-        (bool delegateCallStatus, bytes memory result) = transactionsContract.delegatecall{gas:GAS_FOR_TRANSFER}(
-            abi.encodeWithSignature("safeQuicTransfer(address,uint256)", _to, _amount)
-        );
-        require(delegateCallStatus, "delegatecall failed");
     }
 
     function getGlobalAmount(address _user) public view returns(uint256) {
@@ -385,31 +272,4 @@ contract QuicMasterFarmer is QuicMasterStorage, Ownable, Authorizable {
         userDepFee = _usrDepFees;
     }
 
-    function gasForUpdatePoolUpdate(uint _newGasForUpdatePool) public onlyAuthorized {
-       GAS_FOR_UPDATE_POOL = _newGasForUpdatePool;
-    }
-
-    function gassForClaimRewardUpdate(uint _newGasForClaimReward) public onlyAuthorized {
-       GAS_FOR_CLAIM_REWARD = _newGasForClaimReward;
-    }
-
-    function gassForHarvestUpdate(uint _newGasForHarvest) public onlyAuthorized {
-       GAS_FOR_HARVEST = _newGasForHarvest;
-    }
-
-    function gassForDepositUpdate(uint _newGasForDeposit) public onlyAuthorized {
-       GAS_FOR_DEPOSIT = _newGasForDeposit;
-    }
-
-    function gassForWithdrawUpdate(uint _newGasForWithdraw) public onlyAuthorized {
-       GAS_FOR_WITHDRAW = _newGasForWithdraw;
-    }
-
-    function gassForEmergencyWithdrawUpdate(uint _newGasForEmergencyWithdraw) public onlyAuthorized {
-       GAS_FOR_EMERGENCY_WITHDRAW = _newGasForEmergencyWithdraw;
-    }
-
-    function gassForTransferUpdate(uint _newGasForTransfer) public onlyAuthorized {
-       GAS_FOR_TRANSFER = _newGasForTransfer;
-    }
 }

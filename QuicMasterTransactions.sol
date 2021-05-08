@@ -161,7 +161,6 @@ contract QuicMasterTransactions is QuicMasterStorage,  Ownable, Authorizable {
             refer.globalRefAmount = refer.globalRefAmount + _amount;
         }
 
-        
         current.globalAmount = current.globalAmount + _amount.mul(userDepFee).div(100);
         
         updatePool(_pid);
@@ -238,15 +237,15 @@ contract QuicMasterTransactions is QuicMasterStorage,  Ownable, Authorizable {
 				//0.25% fee if a user deposits and withdraws after 2 weeks.
 				pool.lpToken.safeTransfer(address(msg.sender), _amount.mul(userFeeStage[6]).div(10000));
 				pool.lpToken.safeTransfer(address(devaddr), _amount.mul(devFeeStage[6]).div(10000));
-			} else if (user.blockdelta > blockDeltaStartStage[7]) {
+			} else {
 				//0.0% fee if a user deposits and withdraws after 4 weeks.
 				pool.lpToken.safeTransfer(address(msg.sender), _amount);
 			}
-                user.rewardDebt = user.amount.mul(pool.accQuicPerShare).div(1e12);
-                emit Withdraw(msg.sender, _pid, _amount);
-                user.lastWithdrawBlock = block.number;
-			}
-        }
+            user.rewardDebt = user.amount.mul(pool.accQuicPerShare).div(1e12);
+            emit Withdraw(msg.sender, _pid, _amount);
+            user.lastWithdrawBlock = block.number;
+        }   
+    }
 
 
     // Withdraw without caring about rewards. EMERGENCY ONLY. This has the same 25% fee as same block withdrawals to prevent abuse of thisfunction.
